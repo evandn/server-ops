@@ -20,11 +20,11 @@ apt update && apt upgrade
 # Install packages
 apt install curl ufw ssh-import-id qemu-guest-agent
 
-# Install Docker
-curl -fsSL https://get.docker.com | sh
-
 # Install and configure Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh && tailscale up
+
+# Install Docker
+curl -fsSL https://get.docker.com | sh
 
 # Remove unused packages and cache
 apt autoremove --purge && apt clean
