@@ -9,7 +9,7 @@ Shell scripts for bootstrapping and managing servers
 ```sh
 unset HISTFILE
 
-URL='https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh'
+URL='https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap_server.sh'
 
 bash -c "$(command -v curl &>/dev/null && curl -fsSL $URL || wget -qO- $URL)"
 ```
