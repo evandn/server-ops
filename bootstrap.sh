@@ -23,6 +23,17 @@ apt install curl ufw ssh-import-id qemu-guest-agent
 # Install and configure Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh && tailscale up
 
+# Configure Docker
+install -Dm644 /dev/stdin /etc/docker/daemon.json <<EOF
+{
+  "default-network-opts": {
+    "overlay": {
+      "com.docker.network.driver.mtu": "$(cat /sys/class/net/tailscale0/mtu)"
+    }
+  }
+}
+EOF
+
 # Install Docker
 curl -fsSL https://get.docker.com | sh
 
