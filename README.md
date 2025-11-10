@@ -4,6 +4,8 @@ Shell scripts for bootstrapping and managing servers
 
 ## Usage
 
+### Bootstrap a new server
+
 ```sh
 unset HISTFILE
 
