@@ -14,8 +14,8 @@ install -Dm755 /dev/stdin /etc/dhcp/dhclient-enter-hooks.d/nodns <<EOF
 make_resolv_conf() { :; }
 EOF
 
-# Update and upgrade packages
-apt update && apt upgrade
+# Update system packages
+apt update && apt full-upgrade
 
 # Install packages
 apt install curl ufw ssh-import-id qemu-guest-agent
