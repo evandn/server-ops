@@ -20,6 +20,12 @@ apt update && apt full-upgrade
 # Install packages
 apt install curl ufw ssh-import-id qemu-guest-agent
 
+# Enable IP forwarding
+install -Dm644 /dev/stdin /etc/sysctl.d/99-tailscale.conf <<EOF && sysctl -p $_
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+EOF
+
 # Install and configure Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh && tailscale up
 
