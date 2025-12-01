@@ -1,35 +1,88 @@
 #!/bin/bash
 
 # Enable strict error handling
-set -Eeuo pipefail
+set -Eeuxo pipefail
 
 # Require root privileges
 [[ $EUID -eq 0 ]]
 
-# Configure timezone
+# Set system time zone
 timedatectl set-timezone UTC
 
-# Prevent DHCP from overwriting DNS settings
-install -Dm755 /dev/stdin /etc/dhcp/dhclient-enter-hooks.d/nodns <<EOF
-make_resolv_conf() { :; }
-EOF
-
-# Update system packages
+# Update package index and upgrade installed packages
 apt update && apt full-upgrade
 
-# Install packages
-apt install curl ufw ssh-import-id qemu-guest-agent
+# Install required packages
+apt install \
+  ufw \
+  ethtool \
+  networkd-dispatcher \
+  systemd-resolved \
+  qemu-guest-agent
 
-# Enable IP forwarding
-install -Dm644 /dev/stdin /etc/sysctl.d/99-tailscale.conf <<EOF && sysctl -p $_
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
+# Enable network services
+systemctl unmask systemd-resolved && systemctl enable --now systemd-networkd $_
+
+# Configure global DNS resolvers
+install -Dm644 /dev/stdin /etc/systemd/resolved.conf.d/99-global-dns.conf <<EOF
+[Resolve]
+DNS=
+DNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4
+Domains=
+Domains=~.
 EOF
 
-# Install and configure Tailscale
-curl -fsSL https://tailscale.com/install.sh | sh && tailscale up
+# Apply DNS changes
+systemctl restart systemd-resolved
 
-# Configure Docker
+# Use systemd-resolved for DNS resolution
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+# Enable IP forwarding
+install -Dm644 /dev/stdin /etc/sysctl.d/99-ip-forwarding.conf <<EOF && sysctl -p $_
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
+EOF
+
+# Integrate Docker with UFW
+grep -q 'DOCKER-USER' /etc/ufw/after.rules || cat >>$_ <<EOF
+
+*filter
+:DOCKER-USER - [0:0]
+:ufw-user-forward - [0:0]
+
+-A DOCKER-USER -j ufw-user-forward
+
+-A DOCKER-USER -s 10.0.0.0/8 -j RETURN
+-A DOCKER-USER -s 172.16.0.0/12 -j RETURN
+-A DOCKER-USER -s 192.168.0.0/16 -j RETURN
+
+-A DOCKER-USER -d 10.0.0.0/8 -m conntrack --ctstate NEW -j DROP
+-A DOCKER-USER -d 172.16.0.0/12 -m conntrack --ctstate NEW -j DROP
+-A DOCKER-USER -d 192.168.0.0/16 -m conntrack --ctstate NEW -j DROP
+
+COMMIT
+EOF
+
+# Set UFW default policies
+ufw default deny incoming
+ufw default deny routed
+ufw default allow outgoing
+
+# Enable UFW
+ufw reload && ufw enable
+
+# Optimize UDP forwarding
+install -Dm755 /dev/stdin /etc/networkd-dispatcher/routable.d/99-udp-gro-forwarding <<EOF && $_
+#!/bin/sh
+
+ethtool -K $(ip route show 0/0 | cut -f5 -d' ') rx-udp-gro-forwarding on rx-gro-list off
+EOF
+
+# Install Tailscale
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Configure Docker to use Tailscale MTU
 install -Dm644 /dev/stdin /etc/docker/daemon.json <<EOF
 {
   "default-network-opts": {
@@ -43,11 +96,31 @@ EOF
 # Install Docker
 curl -fsSL https://get.docker.com | sh
 
-# Remove unused packages and cache
+# Configure Docker to start after UFW
+install -Dm644 /dev/stdin /etc/systemd/system/docker.service.d/override.conf <<EOF
+[Unit]
+After=ufw.service
+Wants=ufw.service
+EOF
+
+# Configure Tailscale to start after Docker
+install -Dm644 /dev/stdin /etc/systemd/system/tailscaled.service.d/override.conf <<EOF
+[Unit]
+After=docker.service
+Wants=docker.service
+EOF
+
+# Apply service overrides
+systemctl daemon-reload
+
+# Start Tailscale
+tailscale up --ssh "$@"
+
+# Remove orphaned packages and cache
 apt autoremove --purge && apt clean
 
-# Set up new user
-adduser --gecos -- runner && usermod -aG sudo,docker $_ && runuser -u $_ -- ssh-import-id-gh evandn
+# Create ops user
+adduser --gecos -- ops && usermod -aG sudo,docker $_
 
 # Disable root password
 passwd -dl $USER
@@ -55,9 +128,9 @@ passwd -dl $USER
 # Remove residual files
 find $HOME -mindepth 1 ! -name .bashrc ! -name .profile -exec rm -rf {} +
 
-# Configure SSH server
-install -Dm600 /dev/stdin /etc/ssh/sshd_config <<EOF && sshd -t && systemctl restart ssh
-AllowUsers runner
+# Harden OpenSSH server
+install -Dm600 /dev/stdin /etc/ssh/sshd_config <<EOF
+AllowUsers ops
 PermitRootLogin no
 PasswordAuthentication no
 KbdInteractiveAuthentication no
@@ -65,11 +138,5 @@ UsePAM yes
 PrintMotd no
 EOF
 
-# Configure firewall
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow in on tailscale0
-ufw allow http
-ufw allow https
-ufw allow 41641/udp
-ufw enable
+# Disable OpenSSH server in favor of Tailscale SSH
+systemctl disable --now ssh && systemctl mask $_
