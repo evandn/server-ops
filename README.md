@@ -15,4 +15,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/b
 
 # Bootstrap without UFW for cloud providers with built-in firewalls
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
+
+# Optional but recommended
+reboot
 ```
