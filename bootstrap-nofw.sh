@@ -10,10 +10,10 @@ set -Eeuxo pipefail
 timedatectl set-timezone UTC
 
 # Update package index and upgrade installed packages
-apt update && apt full-upgrade
+apt update && apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" full-upgrade -y
 
 # Install required packages
-apt install \
+apt install -y \
   ethtool \
   networkd-dispatcher \
   systemd-resolved \

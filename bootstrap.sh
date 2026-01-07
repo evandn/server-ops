@@ -10,10 +10,10 @@ set -Eeuxo pipefail
 timedatectl set-timezone UTC
 
 # Update package index and upgrade installed packages
-apt update && apt full-upgrade
+apt update && apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" full-upgrade -y
 
 # Install required packages
-apt install \
+apt install -y \
   ufw \
   ethtool \
   networkd-dispatcher \
@@ -70,7 +70,7 @@ ufw default deny routed
 ufw default allow outgoing
 
 # Enable UFW
-ufw reload && ufw enable
+ufw reload && ufw --force enable
 
 # Optimize UDP forwarding
 install -Dm755 /dev/stdin /etc/networkd-dispatcher/routable.d/99-udp-gro-forwarding <<EOF && $_
