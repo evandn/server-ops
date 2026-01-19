@@ -19,16 +19,16 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/b
 # Bootstrap without UFW for cloud providers with built-in firewalls
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
 
-# Bootstrap for Netcup servers (external firewall required)
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-netcup.sh)"
+# Bootstrap with fixed NTP IPs for non-stateful UDP firewalls
+USE_FIXED_NTP=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
 
 # Reboot to apply changes
 reboot
 ```
 
-### Netcup Firewall
+### Configure firewall rules
 
-Configure the following inbound rules in the SCP firewall panel:
+For providers with external firewalls, configure the following inbound rules. DNS and NTP rules are required only when using `USE_FIXED_NTP=1` for non-stateful UDP firewalls.
 
 | Name      | Proto | Src IPs                            | Src Port | Dst IPs | Dst Port |
 | --------- | ----- | ---------------------------------- | -------- | ------- | -------- |

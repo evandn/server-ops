@@ -37,6 +37,19 @@ systemctl restart systemd-resolved
 # Use systemd-resolved for DNS resolution
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
+# Use fixed NTP IPs for non-stateful UDP firewalls
+if [[ -n $USE_FIXED_NTP ]]; then
+  # Configure global NTP servers
+  install -Dm644 /dev/stdin /etc/systemd/timesyncd.conf.d/99-global-ntp.conf <<EOF
+[Time]
+NTP=
+NTP=162.159.200.1 162.159.200.123
+EOF
+
+  # Apply NTP changes
+  systemctl restart systemd-timesyncd
+fi
+
 # Enable IP forwarding
 install -Dm644 /dev/stdin /etc/sysctl.d/99-ip-forwarding.conf <<EOF && sysctl -p $_
 net.ipv4.ip_forward=1
