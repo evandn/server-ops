@@ -19,6 +19,22 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/b
 # Bootstrap without UFW for cloud providers with built-in firewalls
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
 
+# Bootstrap for Netcup servers (external firewall required)
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-netcup.sh)"
+
 # Reboot to apply changes
 reboot
 ```
+
+### Netcup Firewall
+
+Configure the following inbound rules in the SCP firewall panel:
+
+| Name      | Proto | Src IPs                            | Src Port | Dst IPs | Dst Port |
+| --------- | ----- | ---------------------------------- | -------- | ------- | -------- |
+| DNS       | UDP   | 1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4 | 53       | \*      | \*       |
+| NTP       | UDP   | 162.159.200.1, 162.159.200.123     | 123      | \*      | \*       |
+| HTTP      | TCP   | \*                                 | \*       | \*      | 80       |
+| HTTPS     | TCP   | \*                                 | \*       | \*      | 443      |
+| QUIC      | UDP   | \*                                 | \*       | \*      | 443      |
+| Tailscale | UDP   | \*                                 | \*       | \*      | 41641    |
