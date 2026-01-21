@@ -13,7 +13,7 @@ timedatectl set-timezone UTC
 export DEBIAN_FRONTEND=noninteractive
 
 # Update package index and upgrade installed packages
-apt update && apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" full-upgrade -y
+apt update && apt -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' full-upgrade -y
 
 # Define required packages
 packages=(
@@ -25,7 +25,7 @@ packages=(
 )
 
 # Install required packages
-apt install -y "${packages[@]}"
+apt install -y ${packages[@]}
 
 # Enable network services
 systemctl unmask systemd-resolved && systemctl enable --now systemd-networkd $_

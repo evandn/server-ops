@@ -16,7 +16,7 @@ UFW=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/
 # Bootstrap without UFW for providers with external firewalls
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
-# Bootstrap with static NTP for providers with stateless UDP firewalls
+# Bootstrap with static NTP for providers with non-stateful UDP firewalls
 STATIC_NTP=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
 # Reboot to apply changes
