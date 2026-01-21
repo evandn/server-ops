@@ -10,17 +10,14 @@ Shell scripts for bootstrapping and managing servers
 # Disable command logging for this session
 unset HISTFILE
 
-# Set non-interactive mode for package installations (optional)
-export DEBIAN_FRONTEND=noninteractive
+# Bootstrap with UFW for providers without external firewalls
+UFW=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
-# Bootstrap with default options
+# Bootstrap without UFW for providers with external firewalls
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
-# Bootstrap without UFW for cloud providers with built-in firewalls
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
-
-# Bootstrap with fixed NTP IPs for non-stateful UDP firewalls
-USE_FIXED_NTP=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap-nofw.sh)"
+# Bootstrap with static NTP for providers with stateless UDP firewalls
+STATIC_NTP=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
 # Reboot to apply changes
 reboot
@@ -28,7 +25,7 @@ reboot
 
 ### Configure firewall rules
 
-For providers with external firewalls, configure the following inbound rules. DNS and NTP rules are required only when using `USE_FIXED_NTP=1` for non-stateful UDP firewalls.
+For providers with external firewalls, configure the following inbound rules. DNS and NTP rules are required only when using `STATIC_NTP=1` for non-stateful UDP firewalls.
 
 | Name      | Proto | Src IPs                            | Src Port | Dst IPs | Dst Port |
 | --------- | ----- | ---------------------------------- | -------- | ------- | -------- |
