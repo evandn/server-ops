@@ -138,24 +138,21 @@ tailscale up --ssh "$@"
 # Remove orphaned packages and cache
 apt autoremove --purge && apt clean
 
-# Create ops user
-adduser --gecos -- ops && usermod -aG sudo,docker $_
-
-# Disable root password
-passwd -dl $USER
-
-# Remove residual files
-find $HOME -mindepth 1 ! -name .bashrc ! -name .profile -exec rm -rf {} +
-
-# Harden OpenSSH server
-install -Dm600 /dev/stdin /etc/ssh/sshd_config <<EOF
-AllowUsers ops
+# Create new user and harden OpenSSH server
+adduser --gecos -- ${USERNAME:-ops} && usermod -aG sudo,docker $_ && install -Dm600 /dev/stdin /etc/ssh/sshd_config <<EOF
+AllowUsers $_
 PermitRootLogin no
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 UsePAM yes
 PrintMotd no
 EOF
+
+# Disable root password
+passwd -dl $USER
+
+# Remove residual files
+find $HOME -mindepth 1 ! -name .bashrc ! -name .profile -exec rm -rf {} +
 
 # Disable OpenSSH server in favor of Tailscale SSH
 systemctl disable --now ssh && systemctl mask $_
