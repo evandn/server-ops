@@ -91,7 +91,7 @@ EOF
   ufw reload && ufw --force enable
 fi
 
-# Optimize UDP forwarding
+# Optimize UDP GRO forwarding
 install -Dm755 /dev/stdin /etc/networkd-dispatcher/routable.d/99-udp-gro-forwarding <<EOF && $_
 #!/bin/sh
 
@@ -101,9 +101,15 @@ EOF
 # Install Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Configure Docker to use Tailscale MTU
+# Configure Docker logging and MTU
 install -Dm644 /dev/stdin /etc/docker/daemon.json <<EOF
 {
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3",
+    "compress": "true"
+  },
   "default-network-opts": {
     "overlay": {
       "com.docker.network.driver.mtu": "$(cat /sys/class/net/tailscale0/mtu)"
