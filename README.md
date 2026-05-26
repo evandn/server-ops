@@ -19,6 +19,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/b
 # Bootstrap with static NTP for providers with non-stateful UDP firewalls
 STATIC_NTP=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/bootstrap.sh)"
 
+# Set up Dokploy
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/HEAD/setup-dokploy.sh)"
+
 # Reboot to apply changes
 reboot
 ```
