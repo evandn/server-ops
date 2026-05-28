@@ -21,6 +21,7 @@ packages=(
   networkd-dispatcher
   systemd-resolved
   qemu-guest-agent
+  unattended-upgrades
   ${UFW:+ufw}
 )
 
