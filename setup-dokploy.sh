@@ -9,11 +9,17 @@ set -Eeuxo pipefail
 # Get Tailscale IPv4
 ip=$(tailscale ip -4)
 
-# Install Dokploy without exposing ports
-curl -fsSL https://dokploy.com/install.sh | sed '/--publish/d' | ADVERTISE_ADDR=$ip bash
+# Install and set up Dokploy behind Tailscale
+curl -fsSL https://dokploy.com/install.sh | sed \
+  -e '/--publish/d' \
+  -e '/docker.sock:ro/a\        -v /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock:ro \\' |
+  ADVERTISE_ADDR=$ip bash
 
 # Get Tailscale FQDN
-url=$(tailscale whois $ip | grep -o '[^ ]*ts\.net')
+url=$(tailscale whois $ip | grep -o '[^ ]*\.ts\.net')
 
-# Configure Traefik with Tailscale FQDN
-until test -f /etc/dokploy/traefik/dynamic/dokploy.yml && sed -i "s/\`.*\`/\`$url\`/" $_; do sleep 5; done
+# Bind Dokploy dashboard to Tailscale FQDN
+sed -i "s/\`.*\`/\`$url\`/" /etc/dokploy/traefik/dynamic/dokploy.yml
+
+# Add Tailscale certificate resolver to Traefik
+sed -i '/certificatesResolvers:/a\  tailscale:\n    tailscale: {}' /etc/dokploy/traefik/traefik.yml
