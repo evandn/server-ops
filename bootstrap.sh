@@ -83,11 +83,6 @@ EOF
   ufw default deny routed
   ufw default allow outgoing
 
-  # Allow essential services
-  ufw allow http
-  ufw allow https
-  ufw allow 443/udp
-
   # Enable UFW
   ufw reload && ufw --force enable
 fi
