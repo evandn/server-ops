@@ -28,7 +28,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/evandn/server-ops/H
 
 ### Configure firewall rules
 
-For providers with external firewalls, deny all inbound and add only the rules below. Apps are served through an outbound Cloudflare Tunnel, while Dokploy dashboard and SSH run over Tailscale, so no HTTP or HTTPS port is ever exposed. Follow [the Cloudflare Tunnel guide](https://docs.dokploy.com/docs/core/guides/cloudflare-tunnels) to set up the tunnel. DNS and NTP rules apply only with `STATIC_NTP=1` for stateless UDP firewalls.
+For providers with external firewalls, deny all inbound and add only the rules below. Apps are served through an outbound Cloudflare Tunnel, while the Dokploy dashboard and SSH run over Tailscale, so no HTTP or HTTPS port is ever exposed. Follow [the Cloudflare Tunnel guide](https://docs.dokploy.com/docs/core/guides/cloudflare-tunnels) to set up the tunnel. DNS and NTP rules apply only with `STATIC_NTP=1` for stateless UDP firewalls.
 
 | Name      | Proto | Src IPs                            | Src Port | Dst IPs | Dst Port |
 | --------- | ----- | ---------------------------------- | -------- | ------- | -------- |

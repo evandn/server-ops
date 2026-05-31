@@ -43,7 +43,7 @@ EOF
 # Use systemd-resolved for DNS resolution
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
-# Configure static NTP servers for non-stateful UDP firewalls
+# Configure static NTP servers for stateless UDP firewalls
 [[ -n ${STATIC_NTP-} ]] && install -Dm644 /dev/stdin /etc/systemd/timesyncd.conf.d/99-global-ntp.conf <<EOF && systemctl restart systemd-timesyncd
 [Time]
 NTP=
