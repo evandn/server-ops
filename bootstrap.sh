@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Enable strict error handling
-set -Eeuxo pipefail
+set -Eeuo pipefail
 
 # Require root privileges
 [[ $EUID -eq 0 ]]
