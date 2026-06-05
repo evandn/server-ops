@@ -13,7 +13,7 @@ timedatectl set-timezone UTC
 export DEBIAN_FRONTEND=noninteractive
 
 # Update package index and upgrade installed packages
-apt update && apt -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' full-upgrade -y
+apt update && apt -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold full-upgrade -y
 
 # Define required packages
 packages=(
@@ -59,7 +59,7 @@ EOF
 # Use UFW as local firewall
 if [[ -n ${UFW-} ]]; then
   # Configure UFW rules for Docker
-  grep -q 'DOCKER-USER' /etc/ufw/after.rules || cat >>$_ <<EOF
+  grep -q DOCKER-USER /etc/ufw/after.rules || cat >>$_ <<EOF
 
 *filter
 :DOCKER-USER - [0:0]
@@ -108,7 +108,7 @@ install -Dm644 /dev/stdin /etc/docker/daemon.json <<EOF
   },
   "default-network-opts": {
     "overlay": {
-      "com.docker.network.driver.mtu": "$(cat /sys/class/net/tailscale0/mtu)"
+      "com.docker.network.driver.mtu": "$(</sys/class/net/tailscale0/mtu)"
     }
   }
 }
